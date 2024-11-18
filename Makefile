@@ -15,7 +15,7 @@ $(BIN): bin $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -o $(BIN)
 
 bin:
-	mkdir bin
+	mkdir -p bin
 
 test: $(TEST_BIN)
 
