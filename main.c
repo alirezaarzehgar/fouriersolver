@@ -153,8 +153,8 @@ fcoeff_t calculate_fourier_coefficient(mathematical_function_t f, double L, int 
 		fc.Bn += (f(x) * sin(N * M_PI * x / L)) * precision;
 	fc.Bn *= 1/L;
 
-	fc.An = (signed long)(fc.An * 100000) * 0.00001f;
-	fc.Bn = (signed long)(fc.Bn * 100000) * 0.00001f;
+	fc.An = round(fc.An * 10000) / 10000;
+	fc.Bn = round(fc.Bn * 10000) / 10000;
 
 	return fc;
 }
@@ -175,6 +175,8 @@ void plot_fourier_text(mathematical_function_t f)
 void plot_fourier_gnuplot(mathematical_function_t f)
 {
 	int pid, fds[2];
+	double L;
+	char strL[250];
 	char *const args[] = { "gnuplot", NULL };
 
 	if (formula) {
@@ -197,12 +199,19 @@ void plot_fourier_gnuplot(mathematical_function_t f)
 		dprintf(fds[1], "plot 0");
 	}
 
+	L = (ul - ll)/2;
+	if (L == M_PI)
+		strcpy(strL, "pi");
+	else if (L == M_E)
+		strcpy(strL, "e");
+	else
+		sprintf(strL, "%f", L);
+
 	for (int n = 0; n < n_term; n++) {
-		double L = (ul - ll)/2;
 		fcoeff_t c = calculate_fourier_coefficient(f, L, n);
 
-		dprintf(fds[1], c.An ? "+%f*cos(x*%d*pi/%f)" : "", c.An, n, L);
-		dprintf(fds[1], c.Bn ? "+%f*sin(x*%d*pi/%f)" : "", c.Bn, n, L);
+		dprintf(fds[1], c.An ? "+%f*cos(x*%d*pi/%s)" : "", c.An, n, strL);
+		dprintf(fds[1], c.Bn ? "+%f*sin(x*%d*pi/%s)" : "", c.Bn, n, strL);
 	}
 
 	if (formula) {
