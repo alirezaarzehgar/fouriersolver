@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 #include <getopt.h>
 #include <stdio.h>
 #include <dlfcn.h>
@@ -14,22 +15,22 @@ typedef struct {
 } fcoeff_t;
 
 int n_term = 100;
-static int verbose, ognuplot;
 double ll, ul, precision = 0.001;
 char *flib_path = NULL, *progname = NULL, *output = "text";
-bool is_limit_exists = false;
+bool is_limit_exists = false, verbose = false, ognuplot = false, dump_terminal = false;
 
 void usage(const char* note)
 {
 	fputs(note, stderr);
 	fprintf(stderr, "%s: [OPTION]... [-a] [-b] LIB_PATH\n", progname);
-	fputs("-h, --help              Getting help\n", stderr);
-	fputs("-a, --lower_limit       Lower integral limit\n", stderr);
-	fputs("-b, --upper_limit       Upper integral limit\n", stderr);
-	fputs("-v, --verbose           Show more details\n", stderr);
-	fputs("-p, --precision         Change precision of result\n", stderr);
-	fputs("-n, --nterm             Specify N in discret sum\n", stderr);
-	fputs("-g, --gnuplot           Generate gnuplot syntax output\n", stderr);
+	fputs("-h       Getting help\n", stderr);
+	fputs("-a       Lower integral limit\n", stderr);
+	fputs("-b       Upper integral limit\n", stderr);
+	fputs("-v       Show more details\n", stderr);
+	fputs("-p       Change precision of result\n", stderr);
+	fputs("-n       Specify N in discret sum\n", stderr);
+	fputs("-g       Generate gnuplot syntax output\n", stderr);
+	fputs("-d       Show output in terminal (dump terminal)\n", stderr);
 
 	exit(EXIT_FAILURE);
 }
@@ -37,24 +38,9 @@ void usage(const char* note)
 void parse_arguments(int argc, char **argv)
 {
 	int  c;
-	const char *short_options;
 
 	progname = argv[0];
-
-	short_options = "a:b:hpn:";
-	static struct option long_options[] = {
-		{"verbose", no_argument, &verbose, 1},
-		{"gnuplot", no_argument, &ognuplot, 1},
-		{"lower_limit", required_argument, 0, 'a'},
-		{"upper_limit", required_argument, 0, 'b'},
-		{"precision", required_argument, 0, 'p'},
-		{"nterm", required_argument, 0, 'n'},
-
-		{"help", required_argument, 0, 'h'},
-		{0, 0, 0, 0}
-	};
-
-	while ((c = getopt_long(argc, argv, short_options, long_options, NULL)) != -1) {
+	while ((c = getopt(argc, argv, "vgda:b:hp:n:")) != -1) {
 		switch (c) {
 		case 'a':
 			ll = atof(optarg);
@@ -72,6 +58,20 @@ void parse_arguments(int argc, char **argv)
 
 		case 'n':
 			n_term = atof(optarg);
+			break;
+
+		case 'v':
+			verbose = true;
+			break;
+
+
+		case 'g':
+			ognuplot = true;
+			break;
+
+
+		case 'd':
+			dump_terminal = true;
 			break;
 
 		case 'h':
@@ -94,6 +94,9 @@ void parse_arguments(int argc, char **argv)
 
 	if (!flib_path)
 		usage("You should pass LIB_PATH\n");
+
+	if (dump_terminal)
+		ognuplot = 1;
 }
 
 fcoeff_t calculate_fourier_coefficient(mathematical_function_t f, double L, int N)
@@ -129,6 +132,9 @@ int main(int argc, char **argv)
 		fprintf(stderr, "%s\n", dlerror());
 		exit(EXIT_FAILURE);
 	}
+
+	if (dump_terminal)
+		printf("set terminal dumb;");
 
 	if (ognuplot)
 		printf("plot 0");
