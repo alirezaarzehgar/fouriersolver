@@ -156,19 +156,27 @@ void plot_fourier_text(mathematical_function_t f)
 
 void plot_fourier_gnuplot(mathematical_function_t f)
 {
-	if (dump_terminal)
-		printf("set terminal dumb;");
+	FILE *p;
 
-	printf("plot 0");
+	if (!(p = popen("gnuplot -p", "w"))) {
+		fprintf(stderr, "unable to run gnuplot");
+		p = stdout;
+	}
+
+	if (dump_terminal)
+		fprintf(p, "set terminal dumb;");
+
+	fprintf(p, "plot 0");
 	for (int n = 0; n < n_term; n++) {
 		double L = (ul - ll)/2;
 		fcoeff_t c = calculate_fourier_coefficient(f, L, n);
 
-		printf(c.An ? "+%f*cos(x*%d*pi/%f)" : "", c.An, n, L);
-		printf(c.Bn ? "+%f*sin(x*%d*pi/%f)" : "", c.Bn, n, L);
+		fprintf(p, c.An ? "+%f*cos(x*%d*pi/%f)" : "", c.An, n, L);
+		fprintf(p, c.Bn ? "+%f*sin(x*%d*pi/%f)" : "", c.Bn, n, L);
 	}
 
-	printf(" title \"Fourier serie\"\n");
+	fprintf(p, " title \"Fourier serie\"\n");
+	pclose(p);
 }
 
 int main(int argc, char **argv)
@@ -188,11 +196,10 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (ognuplot) {
+	if (ognuplot)
 		plot_fourier_gnuplot(f);
-	} else {
+	else
 		plot_fourier_text(f);
-	}
 
 	return (EXIT_SUCCESS);
 }
