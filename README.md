@@ -49,6 +49,7 @@ Run following script to clone and compile project.
 git clone https://github.com/alirezaarzehgar/fouriersolver
 cd fouriersolver
 make
+# sudo make install
 ```
 
 Then you can run `./fouriersolver` binary and use its options.
@@ -59,20 +60,20 @@ options. Use `-f` for printing formula, `-g` plot serie and `-h` for getting hel
 See some examples:
 
 ```bash
-$ ./fouriersolver "x/5" -n 5 -a "-M_PI" -b "M_PI"
+$ fouriersolver "x/5" -n 5 -a "-M_PI" -b "M_PI"
 B1 = 0.400000
 B2 = -0.200000
 B3 = 0.133300
 B4 = -0.100000
-$ ./fouriersolver "pow(x, 2)" -n 5 -a "-M_PI" -b "M_PI"
+$ fouriersolver "pow(x, 2)" -n 5 -a "-M_PI" -b "M_PI"
 A0 = 6.582300
 A1 = -4.002600
 A2 = 1.002600
 A3 = -0.447000
 A4 = 0.252600
-$ ./fouriersolver "pow(x, 2)" -n 5 -a "-M_PI" -b "M_PI" -f
+$ fouriersolver "pow(x, 2)" -n 5 -a "-M_PI" -b "M_PI" -f
 +6.582300*cos(x*0*pi/pi)+-4.002600*cos(x*1*pi/pi)+1.002600*cos(x*2*pi/pi)+-0.447000*cos(x*3*pi/pi)+0.252600*cos(x*4*pi/pi)
-$ ./fouriersolver "pow(M_E, x)" -a 0 -b "5" -g -d
+$ fouriersolver "pow(M_E, x)" -a 0 -b "5" -g -d
 
   180 +--------------------------------------------------------------------+   
       |                +                 +                +                |   
@@ -98,9 +99,9 @@ $ ./fouriersolver "pow(M_E, x)" -a 0 -b "5" -g -d
      -10              -5                 0                5                10  
 ```
 
-Plot a serie:
+Plot $f(x) = e^x$ in 0 < x < 2:
 ```bash
-$ fouriersolver "pow(M_E, x)" -a "-2" -b "2"  -g
+$ fouriersolver "pow(M_E, x)" -a 0 -b 2  -g
 ```
 ![Fourier Serie for e^x](img/plot.png)
 
