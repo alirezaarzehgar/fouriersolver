@@ -9,6 +9,7 @@
 #include <math.h>
 
 typedef double (*mathematical_function_t)(double);
+typedef double (*mathematical_constant_t)();
 
 typedef struct {
 	double An, Bn;
@@ -16,7 +17,7 @@ typedef struct {
 
 int n_term = 100;
 double ll, ul, precision = 0.001;
-char *flib_path = NULL, *progname = NULL, *output = "text";
+char *flib_path = NULL, *progname = NULL, *lowerl = NULL, *upperl = NULL, *output = "text";
 bool is_limit_exists = false, verbose = false, ognuplot = false, dump_terminal = false;
 
 void usage(const char* note)
@@ -49,8 +50,18 @@ int generate_exp_sharedlib(char *math_exp)
 	        "double f(double x)\n"
 	        "{\n"
 	        "	return %s;\n"
+	        "}\n"
+	        "\n"
+	        "double lowerl()\n"
+	        "{\n"
+	        "	return %s;\n"
+	        "}\n"
+	        "\n"
+	        "double upperl()\n"
+	        "{\n"
+	        "	return %s;\n"
 	        "}\n",
-	        math_exp
+	        math_exp, lowerl, upperl
 	       );
 	fclose(f);
 
@@ -67,12 +78,12 @@ void parse_arguments(int argc, char **argv)
 	while ((c = getopt(argc, argv, "vgda:b:hp:n:")) != -1) {
 		switch (c) {
 		case 'a':
-			ll = atof(optarg);
+			lowerl = optarg;
 			is_limit_exists = true;
 			break;
 
 		case 'b':
-			ul = atof(optarg);
+			upperl = optarg;
 			is_limit_exists = true;
 			break;
 
@@ -127,6 +138,7 @@ void parse_arguments(int argc, char **argv)
 fcoeff_t calculate_fourier_coefficient(mathematical_function_t f, double L, int N)
 {
 	fcoeff_t fc = {};
+
 	for (double x = ll; x <= ul; x += precision)
 		fc.An += (f(x) * cos(N * M_PI * x / L)) * precision;
 	fc.An *= 1/L;
@@ -183,6 +195,7 @@ int main(int argc, char **argv)
 {
 	void* dlobj = NULL;
 	mathematical_function_t f = NULL;
+	mathematical_constant_t cf = NULL;
 
 	parse_arguments(argc, argv);
 
@@ -195,6 +208,18 @@ int main(int argc, char **argv)
 		fprintf(stderr, "%s\n", dlerror());
 		exit(EXIT_FAILURE);
 	}
+
+	if (!(cf = dlsym(dlobj, "lowerl"))) {
+		fprintf(stderr, "%s\n", dlerror());
+		exit(EXIT_FAILURE);
+	}
+	ll = cf();
+
+	if (!(cf = dlsym(dlobj, "upperl"))) {
+		fprintf(stderr, "%s\n", dlerror());
+		exit(EXIT_FAILURE);
+	}
+	ul = cf();
 
 	if (ognuplot)
 		plot_fourier_gnuplot(f);
