@@ -168,27 +168,32 @@ void plot_fourier_text(mathematical_function_t f)
 
 void plot_fourier_gnuplot(mathematical_function_t f)
 {
-	FILE *p;
-
-	if (!(p = popen("gnuplot -p", "w"))) {
-		fprintf(stderr, "unable to run gnuplot");
-		p = stdout;
-	}
+	int pid, fds[2];
+	pipe(fds);
+	close(STDIN_FILENO);
+	dup2(fds[0], STDIN_FILENO);
 
 	if (dump_terminal)
-		fprintf(p, "set terminal dumb;");
+		dprintf(fds[1], "set terminal dumb;");
 
-	fprintf(p, "plot 0");
+	dprintf(fds[1], "plot 0");
 	for (int n = 0; n < n_term; n++) {
 		double L = (ul - ll)/2;
 		fcoeff_t c = calculate_fourier_coefficient(f, L, n);
 
-		fprintf(p, c.An ? "+%f*cos(x*%d*pi/%f)" : "", c.An, n, L);
-		fprintf(p, c.Bn ? "+%f*sin(x*%d*pi/%f)" : "", c.Bn, n, L);
+		dprintf(fds[1], c.An ? "+%f*cos(x*%d*pi/%f)" : "", c.An, n, L);
+		dprintf(fds[1], c.Bn ? "+%f*sin(x*%d*pi/%f)" : "", c.Bn, n, L);
 	}
 
-	fprintf(p, " title \"Fourier serie\"\n");
-	pclose(p);
+	dprintf(fds[1], " title \"Fourier serie\"\n");
+
+	char *const args[] = { "gnuplot", NULL };
+
+	pid = fork();
+	if (pid == -1)
+		fprintf(stderr, "unable to fork");
+	else if (pid == 0)
+		execvp("gnuplot", args);
 }
 
 int main(int argc, char **argv)
