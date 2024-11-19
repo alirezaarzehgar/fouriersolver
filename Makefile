@@ -1,6 +1,6 @@
 SRC = main.c
 OBJ = $(SRC:.c=.o)
-CFLAGS = -Wall -Wextra
+CFLAGS = -Wall -Wextra -lm
 BIN = bin/_fouriersolver
 
 TEST_SRC = test_exp.c
