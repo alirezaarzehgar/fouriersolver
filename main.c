@@ -18,7 +18,7 @@ typedef struct {
 int n_term = 100;
 double ll, ul, precision = 0.001;
 char *flib_path = NULL, *progname = NULL, *lowerl = NULL, *upperl = NULL, *output = "text";
-bool is_limit_exists = false, verbose = false, ognuplot = false, dump_terminal = false;
+bool is_limit_exists = false, verbose = false, ognuplot = false, dump_terminal = false, formula = false;
 
 void usage(const char* note)
 {
@@ -32,6 +32,7 @@ void usage(const char* note)
 	fputs("-n       Specify N in discret sum\n", stderr);
 	fputs("-g       Generate gnuplot syntax output\n", stderr);
 	fputs("-d       Show output in terminal (dump terminal)\n", stderr);
+	fputs("-f       Just print formula and gnuplot syntax\n", stderr);
 
 	exit(EXIT_FAILURE);
 }
@@ -75,7 +76,7 @@ void parse_arguments(int argc, char **argv)
 	int  c;
 
 	progname = argv[0];
-	while ((c = getopt(argc, argv, "vgda:b:hp:n:")) != -1) {
+	while ((c = getopt(argc, argv, "fvgda:b:hp:n:")) != -1) {
 		switch (c) {
 		case 'a':
 			lowerl = optarg;
@@ -105,6 +106,11 @@ void parse_arguments(int argc, char **argv)
 
 		case 'd':
 			dump_terminal = true;
+			break;
+
+		case 'f':
+			formula = true;
+			ognuplot = true;
 			break;
 
 		case 'h':
@@ -169,19 +175,28 @@ void plot_fourier_text(mathematical_function_t f)
 void plot_fourier_gnuplot(mathematical_function_t f)
 {
 	int pid, fds[2];
-	pipe(fds);
-	close(STDIN_FILENO);
-	dup2(fds[0], STDIN_FILENO);
+	char *const args[] = { "gnuplot", NULL };
 
-	if (dump_terminal)
-		dprintf(fds[1], "set terminal dumb;");
+	if (formula) {
+		fds[1] = STDOUT_FILENO;
+	} else {
+		pipe(fds);
+		close(STDIN_FILENO);
+		dup2(fds[0], STDIN_FILENO);
+	}
 
-	dprintf(fds[1],
-	        "set style line 12 lc rgb '#808080' lt 0 lw 1;"
-	        "set grid back ls 12;"
-	       );
+	if (!formula) {
+		if (dump_terminal)
+			dprintf(fds[1], "set terminal dumb;");
 
-	dprintf(fds[1], "plot 0");
+		dprintf(fds[1],
+		        "set style line 12 lc rgb '#808080' lt 0 lw 1;"
+		        "set grid back ls 12;"
+		       );
+
+		dprintf(fds[1], "plot 0");
+	}
+
 	for (int n = 0; n < n_term; n++) {
 		double L = (ul - ll)/2;
 		fcoeff_t c = calculate_fourier_coefficient(f, L, n);
@@ -190,9 +205,12 @@ void plot_fourier_gnuplot(mathematical_function_t f)
 		dprintf(fds[1], c.Bn ? "+%f*sin(x*%d*pi/%f)" : "", c.Bn, n, L);
 	}
 
-	dprintf(fds[1], " title \"Fourier serie\"\n");
+	if (formula) {
+		dprintf(fds[1], "\n");
+		return;
+	}
 
-	char *const args[] = { "gnuplot", NULL };
+	dprintf(fds[1], " title \"Fourier serie\"\n");
 
 	pid = fork();
 	if (pid == -1)
