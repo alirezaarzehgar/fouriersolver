@@ -116,6 +116,36 @@ fcoeff_t calculate_fourier_coefficient(mathematical_function_t f, double L, int 
 	return fc;
 }
 
+void plot_fourier_text(mathematical_function_t f)
+{
+	for (int n = 0; n < n_term; n++) {
+		double L = (ul - ll)/2;
+		fcoeff_t c = calculate_fourier_coefficient(f, L, n);
+
+		printf(c.An ? "A%d = %f" : "", n, c.An);
+		printf(c.An && c.Bn ? ", " : "");
+		printf(c.Bn ? "B%d = %f" : "", n, c.Bn);
+		printf(c.An || c.Bn ? "\n" : "");
+	}
+}
+
+void plot_fourier_gnuplot(mathematical_function_t f)
+{
+	if (dump_terminal)
+		printf("set terminal dumb;");
+
+	printf("plot 0");
+	for (int n = 0; n < n_term; n++) {
+		double L = (ul - ll)/2;
+		fcoeff_t c = calculate_fourier_coefficient(f, L, n);
+
+		printf(c.An ? "+%f*cos(x*%d*pi/%f)" : "", c.An, n, L);
+		printf(c.Bn ? "+%f*sin(x*%d*pi/%f)" : "", c.Bn, n, L);
+	}
+
+	printf(" title \"Fourier serie\"\n");
+}
+
 int main(int argc, char **argv)
 {
 	void* dlobj = NULL;
@@ -133,30 +163,11 @@ int main(int argc, char **argv)
 		exit(EXIT_FAILURE);
 	}
 
-	if (dump_terminal)
-		printf("set terminal dumb;");
-
-	if (ognuplot)
-		printf("plot 0");
-
-	for (int n = 0; n < n_term; n++) {
-		double L = (ul - ll)/2;
-
-		fcoeff_t c = calculate_fourier_coefficient(f, L, n);
-
-		if (ognuplot) {
-			printf(c.An ? "+%f*cos(x*%d*pi/%f)" : "", c.An, n, L);
-			printf(c.Bn ? "+%f*sin(x*%d*pi/%f)" : "", c.Bn, n, L);
-		} else {
-			printf(c.An ? "A%d = %f" : "", n, c.An);
-			printf(c.An && c.Bn ? ", " : "");
-			printf(c.Bn ? "B%d = %f" : "", n, c.Bn);
-			printf(c.An || c.Bn ? "\n" : "");
-		}
+	if (ognuplot) {
+		plot_fourier_gnuplot(f);
+	} else {
+		plot_fourier_text(f);
 	}
-
-	if (ognuplot)
-		printf(" title \"Fourier serie\"\n");
-
+	
 	return (EXIT_SUCCESS);
 }
