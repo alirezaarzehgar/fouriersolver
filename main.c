@@ -100,12 +100,15 @@ fcoeff_t calculate_fourier_coefficient(mathematical_function_t f, double L, int 
 {
 	fcoeff_t fc = {};
 	for (double x = ll; x <= ul; x += precision)
-		fc.An += f(x) * cos(N * M_PI * x / L);
+		fc.An += (f(x) * cos(N * M_PI * x / L)) * precision;
 	fc.An *= 1/L;
 
 	for (double x = ll; x <= ul; x += precision)
-		fc.An += f(x) * sin(N * M_PI * x / L);
+		fc.Bn += (f(x) * sin(N * M_PI * x / L)) * precision;
 	fc.Bn *= 1/L;
+
+	fc.An = (signed long)(fc.An * 100000) * 0.00001f;
+	fc.Bn = (signed long)(fc.Bn * 100000) * 0.00001f;
 
 	return fc;
 }
@@ -135,10 +138,15 @@ int main(int argc, char **argv)
 
 		fcoeff_t c = calculate_fourier_coefficient(f, L, n);
 
-		if (ognuplot)
-			printf("+%f*cos(x*%d*pi/%f)+%f*sin(x*%d*pi/%f)", c.An, n, L, c.Bn, n, L);
-		else
-			printf("A%d = %f, B%d = %f\n", n, c.An, n, c.Bn);
+		if (ognuplot) {
+			printf(c.An ? "+%f*cos(x*%d*pi/%f)" : "", c.An, n, L);
+			printf(c.Bn ? "+%f*sin(x*%d*pi/%f)" : "", c.Bn, n, L);
+		} else {
+			printf(c.An ? "A%d = %f" : "", n, c.An);
+			printf(c.An && c.Bn ? ", " : "");
+			printf(c.Bn ? "B%d = %f" : "", n, c.Bn);
+			printf(c.An || c.Bn ? "\n" : "");
+		}
 	}
 
 	if (ognuplot)
