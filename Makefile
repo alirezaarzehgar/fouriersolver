@@ -9,6 +9,13 @@ all: $(BIN)
 $(BIN): $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -o $(BIN)
 
+install:
+	install -s -groot -oroot -t/usr/bin/ $(BIN)
+	cp $(BIN).1 /usr/share/man/man1
+
+uninstall:
+	rm /usr/bin/$(BIN) /usr/share/man/man1/$(BIN).1
+
 clean:
 	rm -rf $(OBJ) ${BIN}
 

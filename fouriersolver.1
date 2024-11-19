@@ -1,0 +1,81 @@
+.TH FOURIERSOLVER 1 "November 2024" "1.0" "Fourier Series Calculator"
+.SH NAME
+fouriersolver \- Calculate&Plot Fourier Series
+.SH SYNOPSIS
+.B fouriersolver
+.I F(x) [OPTION]... [-a] [-b]
+.SH DESCRIPTION
+The
+.B fouriersolver
+tool calculates and plots the Fourier serie of a given mathematical function
+.F x
+over a specified interval. The coefficients are computed using numerical integration
+and can be displayed in various formats, including a gnuplot-compatible output.
+
+.SH OPTIONS
+.TP
+.B \-h
+Show help information.
+.TP
+.B \-a
+Specify the lower limit of the integral. This option support C syntax. You can use
+all of math.h functions and constants. For example in C pi is M_PI and e is M_E.
+.TP
+.B \-b
+Specify the upper limit of the integral. Similar to -a you can use C syntax.
+.TP
+.B \-v
+Enable verbose output.
+.TP
+.B \-p
+Set the precision of the result (default is 0.001).
+Setting different parameter directly effects on speed and accuracy of result.
+.TP
+.B \-n
+Specify the number of terms (N) in the discrete sum (default is 100).
+This option is completely related to N in formula. In formula N approaches to infinite
+but in real world we should suppose something reasonable.
+.TP
+.B \-g
+Generate output in gnuplot syntax. This option will plot serie using gnuplot back-end.
+.TP
+.B \-d
+Dump output to the terminal. This option will enable dump terminal mode in gnuplot.
+.TP
+.B \-f
+Print the formula and gnuplot syntax without plotting.
+
+.SH EXAMPLES
+Calculate Fourier coefficients for the function f(x) = x/5 in -4 < x < 4:
+.PP
+.B $ fouriersolver "x/5" -n 5 -a "-4" -b "4"
+.PP
+Calculate Fourier coefficients for the function f(x) = x^2 in -pi < x < pi:
+.PP
+.B $ fouriersolver "pow(x, 2)" -n 5 -a "-M_PI" -b "M_PI"
+.PP
+Print the formula:
+.PP
+.B $ fouriersolver "pow(x, 2)" -n 5 -a "-M_PI" -b "M_PI" -f
+.PP
+Plot the Fourier series using gnuplot on show output on terminal for f(x) = pow(M_E, x) in 0 < x < 1:
+.PP
+.B $ fouriersolver "pow(M_E, x)" -a 0 -b "1" -d
+.PP
+Plot the Fourier series using gnuplot for f(x) = sin(x) in -pi < x < pi:
+.PP
+.B $ fouriersolver "sin(x)"  -a "-M_PI" -b "M_PI" -g
+
+.SH AUTHOR
+Written by Alireza Arzehgar.
+
+.SH REPORT BUGS
+My personal github account: https://github.com/alirezaarzehgar/fouriersolver
+
+.SH LICENSE
+This project is for educational purposes and is open for contributions. Feel free to fork and send pull requests.
+
+.SH SEE ALSO
+gnuplot(1)
+
+Full documentation <https://github.com/alirezaarzehgar/fouriersolver>
