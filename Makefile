@@ -1,28 +1,15 @@
 SRC = main.c
 OBJ = $(SRC:.c=.o)
 CFLAGS = -Wall -Wextra -lm
-BIN = bin/fouriersolver
-
-TEST_SRC = test_exp.c
-TEST_OBJ = $(TEST_SRC:.c=.o)
-TEST_CFLAGS = -shared -fPIC
-TEST_BIN = bin/test_exp.so
+BIN = fouriersolver
 
 .PHONY: all
 all: $(BIN)
 
-$(BIN): bin $(OBJ)
+$(BIN): $(OBJ)
 	$(CC) $(CFLAGS) $(OBJ) -o $(BIN)
 
-bin:
-	mkdir -p bin
-
-test: $(TEST_BIN)
-
-$(TEST_BIN): bin $(TEST_OBJ)
-	$(CC) $(TEST_CFLAGS) $(TEST_OBJ) -o $(TEST_BIN)
-
 clean:
-	rm -rf bin $(OBJ) $(TEST_OBJ)
+	rm -rf $(OBJ) ${BIN}
 
-.PHONY: all install clean bin test
+.PHONY: all install clean bin
