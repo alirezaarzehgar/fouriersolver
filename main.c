@@ -176,6 +176,11 @@ void plot_fourier_gnuplot(mathematical_function_t f)
 	if (dump_terminal)
 		dprintf(fds[1], "set terminal dumb;");
 
+	dprintf(fds[1],
+	        "set style line 12 lc rgb '#808080' lt 0 lw 1;"
+	        "set grid back ls 12;"
+	       );
+
 	dprintf(fds[1], "plot 0");
 	for (int n = 0; n < n_term; n++) {
 		double L = (ul - ll)/2;
