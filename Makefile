@@ -17,6 +17,9 @@ uninstall:
 	rm /usr/bin/$(BIN) /usr/share/man/man1/$(BIN).1
 
 clean:
-	rm -rf $(OBJ) ${BIN}
+	rm -rf $(OBJ) ${BIN} doc/out
+
+doc:
+	make -C doc
 
 .PHONY: all install clean bin

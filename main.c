@@ -147,11 +147,11 @@ fcoeff_t calculate_fourier_coefficient(mathematical_function_t f, double L, int 
 
 	for (double x = ll; x <= ul; x += precision)
 		fc.An += (f(x) * cos(N * M_PI * x / L)) * precision;
-	fc.An *= 1/L;
+	fc.An /= L;
 
 	for (double x = ll; x <= ul; x += precision)
 		fc.Bn += (f(x) * sin(N * M_PI * x / L)) * precision;
-	fc.Bn *= 1/L;
+	fc.Bn /= L;
 
 	fc.An = round(fc.An * 10000) / 10000;
 	fc.Bn = round(fc.Bn * 10000) / 10000;
@@ -196,7 +196,7 @@ void plot_fourier_gnuplot(mathematical_function_t f)
 		        "set grid back ls 12;"
 		       );
 
-		dprintf(fds[1], "plot 0");
+		dprintf(fds[1], "plot ");
 	}
 
 	L = (ul - ll)/2;

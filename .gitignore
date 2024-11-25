@@ -1,3 +1,4 @@
 fouriersolver
 .vscode
 *.o
+doc/out
