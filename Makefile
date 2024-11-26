@@ -22,4 +22,4 @@ clean:
 doc:
 	make -C doc
 
-.PHONY: all install clean bin
+.PHONY: all install uninstall clean $(BIN) doc

@@ -15,7 +15,7 @@ typedef struct {
 	double An, Bn;
 } fcoeff_t;
 
-int n_term = 100;
+int n_term = 100, samples = 1000;
 double ll, ul, precision = 0.001;
 char *flib_path = NULL, *progname = NULL, *lowerl = NULL, *upperl = NULL, *output = "text";
 bool is_limit_exists = false, verbose = false, ognuplot = false, dump_terminal = false, formula = false;
@@ -33,6 +33,7 @@ void usage(const char* note)
 	fputs("-g       Generate gnuplot syntax output\n", stderr);
 	fputs("-d       Show output in terminal (dump terminal)\n", stderr);
 	fputs("-f       Just print formula and gnuplot syntax\n", stderr);
+	fputs("-s       Change number of samples\n", stderr);
 
 	exit(EXIT_FAILURE);
 }
@@ -76,7 +77,7 @@ void parse_arguments(int argc, char **argv)
 	int  c;
 
 	progname = argv[0];
-	while ((c = getopt(argc, argv, "fvgda:b:hp:n:")) != -1) {
+	while ((c = getopt(argc, argv, "fvgda:b:hp:n:s:")) != -1) {
 		switch (c) {
 		case 'a':
 			lowerl = optarg;
@@ -94,6 +95,10 @@ void parse_arguments(int argc, char **argv)
 
 		case 'n':
 			n_term = atof(optarg);
+			break;
+
+		case 's':
+			samples = atof(optarg);
 			break;
 
 		case 'v':
@@ -145,6 +150,9 @@ fcoeff_t calculate_fourier_coefficient(mathematical_function_t f, double L, int 
 {
 	fcoeff_t fc = {};
 
+	if (N == 0)
+		L *= 2;
+
 	for (double x = ll; x <= ul; x += precision)
 		fc.An += (f(x) * cos(N * M_PI * x / L)) * precision;
 	fc.An /= L;
@@ -153,15 +161,12 @@ fcoeff_t calculate_fourier_coefficient(mathematical_function_t f, double L, int 
 		fc.Bn += (f(x) * sin(N * M_PI * x / L)) * precision;
 	fc.Bn /= L;
 
-	fc.An = round(fc.An * 10000) / 10000;
-	fc.Bn = round(fc.Bn * 10000) / 10000;
-
 	return fc;
 }
 
 void plot_fourier_text(mathematical_function_t f)
 {
-	for (int n = 0; n < n_term; n++) {
+	for (int n = 0; n <= n_term; n++) {
 		double L = (ul - ll)/2;
 		fcoeff_t c = calculate_fourier_coefficient(f, L, n);
 
@@ -194,7 +199,8 @@ void plot_fourier_gnuplot(mathematical_function_t f)
 		dprintf(fds[1],
 		        "set style line 12 lc rgb '#808080' lt 0 lw 1;"
 		        "set grid back ls 12;"
-		       );
+		        "set samples %d;"
+		        , samples);
 
 		dprintf(fds[1], "plot ");
 	}
@@ -207,7 +213,7 @@ void plot_fourier_gnuplot(mathematical_function_t f)
 	else
 		sprintf(strL, "%f", L);
 
-	for (int n = 0; n < n_term; n++) {
+	for (int n = 0; n <= n_term; n++) {
 		fcoeff_t c = calculate_fourier_coefficient(f, L, n);
 
 		dprintf(fds[1], c.An ? "+%f*cos(x*%d*pi/%s)" : "", c.An, n, strL);
