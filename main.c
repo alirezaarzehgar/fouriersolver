@@ -17,8 +17,9 @@ typedef struct {
 
 int n_term = 100, samples = 1000;
 double ll, ul, precision = 0.001;
-char *flib_path = NULL, *progname = NULL, *lowerl = NULL, *upperl = NULL, *output = "text";
-bool is_limit_exists = false, verbose = false, ognuplot = false, dump_terminal = false, formula = false;
+char *flib_path = NULL, *progname = NULL, *lowerl = NULL, *upperl = NULL;
+bool is_limit_exists = false, verbose = false, ognuplot = false, geogebra = false,
+	  odesmos = false, dump_terminal = false, formula = false;
 
 void usage(const char* note)
 {
@@ -34,6 +35,8 @@ void usage(const char* note)
 	fputs("-d       Show output in terminal (dump terminal)\n", stderr);
 	fputs("-f       Just print formula and gnuplot syntax\n", stderr);
 	fputs("-s       Change number of samples\n", stderr);
+	fputs("-m       Desmos result format\n", stderr);
+	fputs("-r       Geogebra result format\n", stderr);
 
 	exit(EXIT_FAILURE);
 }
@@ -77,7 +80,7 @@ void parse_arguments(int argc, char **argv)
 	int  c;
 
 	progname = argv[0];
-	while ((c = getopt(argc, argv, "fvgda:b:hp:n:s:")) != -1) {
+	while ((c = getopt(argc, argv, "rmfvgda:b:hp:n:s:")) != -1) {
 		switch (c) {
 		case 'a':
 			lowerl = optarg;
@@ -116,6 +119,14 @@ void parse_arguments(int argc, char **argv)
 		case 'f':
 			formula = true;
 			ognuplot = true;
+			break;
+
+		case 'm':
+			odesmos = true;
+			break;
+
+		case 'r':
+			geogebra = true;
 			break;
 
 		case 'h':
@@ -170,10 +181,55 @@ void plot_fourier_text(mathematical_function_t f)
 		double L = (ul - ll)/2;
 		fcoeff_t c = calculate_fourier_coefficient(f, L, n);
 
+		c.An = round(c.An * 1000) / 1000;
+		c.Bn = round(c.Bn * 1000) / 1000;
+
 		printf(c.An ? "A%d = %f" : "", n, c.An);
 		printf(c.An && c.Bn ? ", " : "");
 		printf(c.Bn ? "B%d = %f" : "", n, c.Bn);
 		printf(c.An || c.Bn ? "\n" : "");
+	}
+}
+
+void plot_fourier_geogebra(mathematical_function_t f)
+{
+	for (int n = 0; n <= n_term; n++) {
+		double L = (ul - ll)/2;
+		char strL[250];
+		fcoeff_t c = calculate_fourier_coefficient(f, L, n);
+
+		if (L == M_PI)
+			strcpy(strL, "π");
+		else if (L == M_E)
+			strcpy(strL, "e");
+		else
+			sprintf(strL, "%f", L);
+
+		if (n != 0)
+			printf("+");
+		printf("%f*cos(x*%d*π/%s)", c.An, n, strL);
+		printf("+%f*sin(x*%d*π/%s)", c.Bn, n, strL);
+	}
+}
+
+void plot_fourier_desmos(mathematical_function_t f)
+{
+	for (int n = 0; n <= n_term; n++) {
+		double L = (ul - ll)/2;
+		char strL[250];
+		fcoeff_t c = calculate_fourier_coefficient(f, L, n);
+
+		if (L == M_PI)
+			strcpy(strL, "\\pi");
+		else if (L == M_E)
+			strcpy(strL, "e");
+		else
+			sprintf(strL, "%f", L);
+
+		if (n != 0)
+			printf("+");
+		printf("%f*cos(x*%d*\\pi/%s)", c.An, n, strL);
+		printf("+%f*sin(x*%d*\\pi/%s)", c.Bn, n, strL);
 	}
 }
 
@@ -264,7 +320,11 @@ int main(int argc, char **argv)
 	}
 	ul = cf();
 
-	if (ognuplot)
+	if (geogebra)
+		plot_fourier_geogebra(f);
+	else if (odesmos)
+		plot_fourier_desmos(f);
+	else if (ognuplot)
 		plot_fourier_gnuplot(f);
 	else
 		plot_fourier_text(f);
