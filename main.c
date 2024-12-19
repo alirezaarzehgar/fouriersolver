@@ -254,6 +254,7 @@ void plot_fourier_gnuplot(mathematical_function_t f)
 
 		dprintf(fds[1],
 		        "set style line 12 lc rgb '#808080' lt 0 lw 1;"
+		        "set style line 1 lc rgb 'black' lw 4;"
 		        "set grid back ls 12;"
 		        "set samples %d;"
 		        , samples);
@@ -281,7 +282,7 @@ void plot_fourier_gnuplot(mathematical_function_t f)
 		return;
 	}
 
-	dprintf(fds[1], " title \"Fourier serie\"\n");
+	dprintf(fds[1], " with lines linestyle 1 title \"Fourier serie\"\n");
 
 	pid = fork();
 	if (pid == -1)
