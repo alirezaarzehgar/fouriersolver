@@ -2,3 +2,4 @@ fouriersolver
 .vscode
 *.o
 doc/out
+report/out

@@ -22,4 +22,7 @@ clean:
 doc:
 	make -C doc
 
-.PHONY: all install uninstall clean $(BIN) doc
+report:
+	make -C report
+
+.PHONY: all install uninstall clean doc report
